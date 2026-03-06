@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.evan.proto";
+option java_outer_classname = "ClusterProto";
+
+package cluster;
+
+import "google/protobuf/empty.proto";
+
+service Node {
+    rpc getRecord(RecordRequest) returns (FullRecord) {}
+    rpc putRecord(FullRecord) returns (google.protobuf.Empty) {}
+    rpc deleteRecord(RecordRequest) returns (google.protobuf.Empty) {}
+    rpc killNode(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+}
+
+service BootstrapSeed {
+    rpc sendHeartbeat(RegisterRequest) returns (google.protobuf.Empty) {}
+    rpc registerAsNode(RegisterRequest) returns (google.protobuf.Empty) {}
+    rpc getMembership(MembershipRequest) returns (MembershipResponse) {}
+    rpc getPartitionMap(google.protobuf.Empty) returns (PartitionMapResponse) {}
+}
+
+// K:V db messages
+
+message RecordRequest {
+    string key = 1;
+}
+
+message FullRecord {
+    string key = 1;
+    string value = 2;
+}
+
+// registration/heartbeat
+
+message RegisterRequest {
+    string ip = 1;
+    int32 port = 2;
+}
+
+message MembershipRequest {
+    int32 version = 1;
+}
+
+message NodeInfo {
+    string ip = 1;
+    int32 port = 2;
+    int64 last_heartbeat = 3;
+}
+
+message MembershipResponse {
+    int32 version = 1;
+    map<string, NodeInfo> nodes = 2; // key = node_id = ip:port
+}
+
+// partition map (handled once)
+
+message PartitionSet {
+    int32 partition = 1;
+    repeated string node_ids = 2; // size is replication_factor
+}
+
+message PartitionMapResponse {
+    bool ready = 1; // if true -> frozen mappings
+    int32 num_partitions = 2;
+    int32 replication_factor = 3;
+    repeated PartitionSet assignments = 4;
+}

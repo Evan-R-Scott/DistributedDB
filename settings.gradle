@@ -1,0 +1,3 @@
+rootProject.name = "DistributedDB"
+
+include "proto", "core","seed-node", "data-node", "client"

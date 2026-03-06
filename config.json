@@ -1,0 +1,25 @@
+{
+  "cluster": {
+    "num_partitions": 32,
+    "replication_factor": 3
+  },
+  "seed": {
+    "nodes": [
+      "127.0.0.1:8080"
+    ],
+    "membership_stable_ms": 10000,
+    "cleanup_interval_seconds": 1
+  },
+  "heartbeat": {
+    "interval_ms": 1000,
+    "ttl_ms": 5000
+  },
+  "router": {
+    "rpc_timeout_ms": 2000,
+    "max_retries": 3
+  },
+  "database": {
+    "path": "/data",
+    "name": "/mydb.db"
+  }
+}

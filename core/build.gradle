@@ -1,0 +1,14 @@
+plugins {
+    id "java-library"
+}
+
+def grpcVersion = "1.63.0"
+
+dependencies {
+    implementation project(":proto")
+    implementation "com.google.guava:guava:33.2.1-jre"
+    implementation "io.grpc:grpc-netty-shaded:${grpcVersion}"
+    implementation "io.grpc:grpc-stub:${grpcVersion}"
+    implementation "io.grpc:grpc-protobuf:${grpcVersion}"
+    implementation "com.fasterxml.jackson.core:jackson-databind:2.17.1"
+}

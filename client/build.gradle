@@ -1,0 +1,17 @@
+plugins {
+    id "application"
+}
+
+def grpcVersion = "1.63.0"
+
+dependencies {
+    implementation project(":proto")
+    implementation project(":core")
+    implementation "io.grpc:grpc-netty-shaded:${grpcVersion}"
+    implementation "io.grpc:grpc-stub:${grpcVersion}"
+    implementation "io.grpc:grpc-protobuf:${grpcVersion}"
+}
+
+application {
+    mainClass = "com.evan.client.Client"
+}
