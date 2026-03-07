@@ -11,12 +11,11 @@ public class Client {
     public Client() {
         this.router = new Router();
         this.commands_with_args = Set.of("get", "put", "delete", "remove");
-        this.valid_commands = Set.of("get", "put", "delete", "nodes", "remove", "help", "quit");
+        this.valid_commands = Set.of("get", "put", "delete", "nodes", "health", "help", "quit");
     }
 
     public static void main(String[] args) {
-        Client client = new Client();
-        client.listenForCommands();
+        new Client().listenForCommands();
     }
 
     private void listCommandOptions() {
@@ -29,7 +28,7 @@ public class Client {
 
         System.out.println("\nManagement commands:");
         System.out.println("  nodes - Show all active nodes in the distributed system");
-        System.out.println("  remove <node_id> - Remove a node from the distributed system");
+        System.out.println("  health - Show health status of the cluster");
         System.out.println("  help - Show this help message");
         System.out.println("  quit - Exit the client\n");
     }
@@ -64,8 +63,7 @@ public class Client {
                     continue;
                 }
             }
-            String response = router.handle(parts);
-            System.out.println(response);
+            router.handle(parts);
         }
         scanner.close();
     }
