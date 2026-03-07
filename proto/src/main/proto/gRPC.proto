@@ -12,14 +12,14 @@ service Node {
     rpc getRecord(RecordRequest) returns (FullRecord) {}
     rpc putRecord(FullRecord) returns (google.protobuf.Empty) {}
     rpc deleteRecord(RecordRequest) returns (google.protobuf.Empty) {}
-    rpc killNode(google.protobuf.Empty) returns (google.protobuf.Empty) {}
 }
 
 service BootstrapSeed {
     rpc sendHeartbeat(RegisterRequest) returns (google.protobuf.Empty) {}
-    rpc registerAsNode(RegisterRequest) returns (google.protobuf.Empty) {}
-    rpc getMembership(MembershipRequest) returns (MembershipResponse) {}
+    rpc registerAsNode(RegisterRequest) returns (RegisterResponse) {}
+    rpc getMembership(google.protobuf.Empty) returns (MembershipResponse) {}
     rpc getPartitionMap(google.protobuf.Empty) returns (PartitionMapResponse) {}
+    rpc getClusterHealth(google.protobuf.Empty) returns (ClusterHealthResponse) {}
 }
 
 // K:V db messages
@@ -40,19 +40,37 @@ message RegisterRequest {
     int32 port = 2;
 }
 
-message MembershipRequest {
-    int32 version = 1;
+enum RegisterStatus {
+    Unspecified = 0;
+    ACCEPT = 1;
+    REJOIN = 2;
+    REJECT = 3;
 }
+
+message RegisterResponse {
+    RegisterStatus status = 1;
+}
+
+message ClusterHealthResponse {
+    int32 total = 1;
+    int32 alive = 2;
+    int32 healthy = 3;
+    int32 weak = 4;
+    int32 dead = 5;
+}
+
+//message MembershipRequest {
+//    int32 version = 1;
+//}
 
 message NodeInfo {
     string ip = 1;
     int32 port = 2;
-    int64 last_heartbeat = 3;
 }
 
 message MembershipResponse {
-    int32 version = 1;
-    map<string, NodeInfo> nodes = 2; // key = node_id = ip:port
+    // int32 version = 1;
+    repeated NodeInfo nodes = 1; // key = node_id = ip:port
 }
 
 // partition map (handled once)

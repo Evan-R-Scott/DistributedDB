@@ -1,30 +1,82 @@
 package com.evan.core;
 
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 import com.evan.proto.BootstrapSeedGrpc;
 import com.evan.proto.NodeGrpc;
-import java.util.concurrent.ConcurrentHashMap;
+
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 
 public class ChannelManager {
-    Map<String, ManagedChannel> live_channels;
+    private final Map<String, ManagedChannel> liveChannels;
 
     public ChannelManager() {
-        this.live_channels = new ConcurrentHashMap<>();
+        this.liveChannels = new ConcurrentHashMap<>();
     }
 
     public ManagedChannel getChannel(String ip, int port) {
         String addr = ip + ":" + port;
-        return live_channels.computeIfAbsent(addr, k -> createChannel(ip, port));
+        return liveChannels.computeIfAbsent(addr, k -> createChannel(ip, port));
     }
 
     private ManagedChannel createChannel(String ip, int port) {
-        // create channel and add to list
-        return ManagedChannelBuilder.forAddress(ip, port).useTransportSecurity().build(); // may need to use
-                                                                                          // .usePlainText() since dont
-                                                                                          // have certificate
+        return ManagedChannelBuilder.forAddress(ip, port)
+                .usePlaintext() // .useTransportSecurity() requires certificate which im not sure about
+                .build();
+    }
+
+    public void openChannel(String ip, int port) {
+        liveChannels.computeIfAbsent(ip + ":" + port, k -> createChannel(ip, port));
+    }
+
+    public void openChannels(List<String> addresses) {
+        for (String address : addresses) {
+            String[] parts = address.split(":");
+            if (parts.length != 2) {
+                System.err.println("Invalid address format (expected ip:port): " + address);
+                continue;
+            }
+
+            try {
+                String ip = parts[0];
+                int port = Integer.parseInt(parts[1]);
+                liveChannels.computeIfAbsent(address, k -> createChannel(ip, port));
+                System.out.println("Opened channel to " + address);
+            } catch (NumberFormatException e) {
+                System.err.println("Invalid port in address: " + address);
+            }
+        }
+    }
+
+    public void closeChannel(String ip, int port) {
+        String addr = ip + ":" + port;
+        ManagedChannel channel = liveChannels.remove(addr);
+        if (channel != null) {
+            try {
+                channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                channel.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
+            System.out.println("Closed channel to " + addr);
+        }
+    }
+
+    public void closeAllChannels() {
+        liveChannels.forEach((addr, channel) -> {
+            try {
+                channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                channel.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
+            System.out.println("Closed channel to " + addr);
+        });
+        liveChannels.clear();
     }
 
     // stubs
