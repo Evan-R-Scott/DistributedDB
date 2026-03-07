@@ -18,8 +18,4 @@ public class NodeService extends NodeGrpc.NodeImplBase {
     @Override
     public void deleteRecord(RecordRequest request, StreamObserver<Empty> responseObserver) {
     }
-
-    @Override
-    public void killNode(Empty request, StreamObserver<Empty> responseObserver) {
-    }
 }
