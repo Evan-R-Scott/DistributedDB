@@ -3,38 +3,55 @@ package com.evan.seed;
 import java.io.IOException;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import com.evan.core.Config;
 
 public class BootstrapSeedMain {
 
+    private final int port;
+    private final Cluster clusterManager;
+    private final BootstrapSeedService bss;
+
+    public BootstrapSeedMain(int port) {
+        this.port = port;
+        this.clusterManager = new Cluster();
+        this.bss = new BootstrapSeedService(clusterManager);
+    }
+
     public static void main(String[] args) {
-        if (args.length < 1) {
-            System.out.println("Please provide one of the supported seed port numbers as an argument");
-            return;
-        }
-        // since only 1 seed node, just read port from the config.json
-        String port = args[0];
-        // String port = "8080"; // hardcoded port for now since starting central seed
-        Integer port_int;
+        // if (args.length < 1) {
+        // System.err.println("Please provide a port number as an argument");
+        // return;
+        // }
+        String portStr = new Config().load_parameters().getSeed().getNodes().get(0);
+        String[] nodeParts = portStr.split(":");
+        int port;
         try {
-            port_int = Integer.parseInt(port);
+            port = Integer.parseInt(nodeParts[1]);
+            // port = Integer.parseInt(args[0]);
         } catch (NumberFormatException e) {
-            System.out.println("Invalid port number provided");
+            System.err.println("Invalid port number: " + nodeParts[1]);
             return;
         }
-        // track cluster membership and handle updates/requests from router and data
-        // nodes
-        Cluster cluster_manager = new Cluster();
-        BootstrapSeedService bss = new BootstrapSeedService(cluster_manager);
-
-        bss.startMaintenance();
-        // Integer port = 8080;
 
         try {
-            Server server = ServerBuilder.forPort(port_int).addService(bss).build().start();
-            System.out.println("Bootstrap seed server started on port " + port);
-            server.awaitTermination();
+            new BootstrapSeedMain(port).run();
         } catch (IOException | InterruptedException e) {
-            System.err.println("Error occurred while starting bootstrap seed server: " + e.getMessage());
+            System.err.println("Error starting bootstrap seed server: " + e.getMessage());
+            Thread.currentThread().interrupt();
         }
+    }
+
+    public void run() throws IOException, InterruptedException {
+        Server server = ServerBuilder.forPort(port).addService(bss).build().start();
+        bss.startMaintenance();
+        System.out.println("Bootstrap seed server started on port " + port);
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            System.out.println("Shutting down bootstrap seed...");
+            bss.shutdown();
+            server.shutdown();
+        }));
+
+        server.awaitTermination();
     }
 }
