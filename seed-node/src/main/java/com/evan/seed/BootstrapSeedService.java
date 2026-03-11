@@ -2,7 +2,6 @@ package com.evan.seed;
 
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -41,9 +40,7 @@ public class BootstrapSeedService extends BootstrapSeedGrpc.BootstrapSeedImplBas
         // this.replication_factor = 3;
         // this.num_partitions = 32;
 
-        this.partition_map = PartitionMapResponse.newBuilder().setReady(false)
-                .setNumPartitions(config.getCluster().getNumPartitions())
-                .setReplicationFactor(config.getCluster().getReplicationFactor()).build();
+        this.partition_map = PartitionMapResponse.newBuilder().setReady(false).build();
     }
 
     public void startMaintenance() {
@@ -239,9 +236,7 @@ public class BootstrapSeedService extends BootstrapSeedGrpc.BootstrapSeedImplBas
 
         if (cluster.size() < config.getCluster().getReplicationFactor()
                 || time_since_last_change < config.getSeed().getMembershipStableMs()) {
-            partition_map = PartitionMapResponse.newBuilder().setReady(false)
-                    .setNumPartitions(config.getCluster().getNumPartitions())
-                    .setReplicationFactor(config.getCluster().getReplicationFactor()).build();
+            partition_map = PartitionMapResponse.newBuilder().setReady(false).build();
             return;
         }
 
@@ -251,9 +246,7 @@ public class BootstrapSeedService extends BootstrapSeedGrpc.BootstrapSeedImplBas
 
     private synchronized void rebuildActivePartitionMap() {
         if (!cluster.isFrozen()) {
-            partition_map = PartitionMapResponse.newBuilder().setReady(false)
-                    .setNumPartitions(config.getCluster().getNumPartitions())
-                    .setReplicationFactor(config.getCluster().getReplicationFactor()).build();
+            partition_map = PartitionMapResponse.newBuilder().setReady(false).build();
             return;
         }
 
@@ -267,8 +260,6 @@ public class BootstrapSeedService extends BootstrapSeedGrpc.BootstrapSeedImplBas
             sets.add(set);
         }
 
-        partition_map = PartitionMapResponse.newBuilder().setReady(true)
-                .setNumPartitions(config.getCluster().getNumPartitions())
-                .setReplicationFactor(config.getCluster().getReplicationFactor()).addAllAssignments(sets).build();
+        partition_map = PartitionMapResponse.newBuilder().setReady(true).addAllAssignments(sets).build();
     }
 }

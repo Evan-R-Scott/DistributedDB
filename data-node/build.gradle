@@ -15,4 +15,5 @@ dependencies {
 
 application {
     mainClass = "com.evan.data.NodeMain"
+    applicationDefaultJvmArgs = ['-Dio.grpc.netty.shaded.io.netty.leakDetection.level=DISABLED']
 }

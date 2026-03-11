@@ -22,7 +22,7 @@ public class BootstrapSeedMain {
         // System.err.println("Please provide a port number as an argument");
         // return;
         // }
-        String portStr = new Config().load_parameters().getSeed().getNodes().get(0);
+        String portStr = new Config().load_parameters().getSeed().getAddress();
         String[] nodeParts = portStr.split(":");
         int port;
         try {

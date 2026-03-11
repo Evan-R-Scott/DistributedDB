@@ -1,0 +1,21 @@
+{
+  "cluster": {
+    "numPartitions": 4,
+    "replicationFactor": 3
+  },
+  "seed": {
+    "address": "127.0.0.1:8080",
+    "membershipStableMs": 10000,
+    "cleanupIntervalSeconds": 1
+  },
+  "heartbeat": {
+    "ttlMs": 15000
+  },
+  "router": {
+    "rpcTimeoutMs": 2000,
+    "maxRetries": 3
+  },
+  "database": {
+    "path": "/data/"
+  }
+}

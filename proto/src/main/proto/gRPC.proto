@@ -9,9 +9,13 @@ package cluster;
 import "google/protobuf/empty.proto";
 
 service Node {
-    rpc getRecord(RecordRequest) returns (FullRecord) {}
-    rpc putRecord(FullRecord) returns (google.protobuf.Empty) {}
-    rpc deleteRecord(RecordRequest) returns (google.protobuf.Empty) {}
+    rpc getRecord(RecordRequest) returns (RecordResponse) {}
+    rpc getHistory(HistoryRequest) returns (HistoryResponse) {}
+    rpc getVersion(GetVersionRequest) returns (GetVersionResponse) {}
+    rpc putRecord(PutRequest) returns (WriteResponse) {}
+    rpc deleteRecord(DeleteRequest) returns (WriteResponse) {}
+    rpc requestVote(VoteRequest) returns (VoteResponse) {}
+    rpc appendEntries(AppendEntriesRequest) returns (AppendEntriesResponse) {}
 }
 
 service BootstrapSeed {
@@ -28,12 +32,110 @@ message RecordRequest {
     string key = 1;
 }
 
-message FullRecord {
+message HistoryRequest {
+    string key = 1;
+}
+
+message GetVersionRequest {
+    string key = 1;
+    int32 version = 2;
+}
+
+message PutRequest {
     string key = 1;
     string value = 2;
 }
 
-// registration/heartbeat
+message DeleteRequest {
+    string key = 1;
+}
+
+enum RequestStatus {
+    Request_Status_Unspecified = 0;
+    OK = 1;
+    NOT_FOUND = 2;
+    NOT_LEADER = 3;
+    UNAVAILABLE = 4;
+    ERROR = 5;
+}
+
+message RecordResponse {
+    RequestStatus status = 1;
+    string key = 2;
+    string value = 3;
+    string leader_hint = 4;
+}
+
+message VersionRecord {
+    int32 version = 1;
+    int64 term = 2;
+    string op = 3;
+    string key = 4;
+    string value = 5;
+    bool is_deleted = 6;
+    string request_id = 7;
+}
+
+message HistoryResponse {
+    RequestStatus status = 1;
+    string key = 2;
+    string leader_hint = 3;
+    repeated VersionRecord versions = 4;
+    string message = 5;
+}
+
+message GetVersionResponse {
+    RequestStatus status = 1;
+    string key = 2;
+    int32 requested_version = 3;
+    string leader_hint = 4;
+    string message = 5;
+    VersionRecord version_record = 6;
+}
+
+message WriteResponse {
+    RequestStatus status = 1;
+    string leader_hint = 2;
+    string message = 3;
+}
+
+message VoteRequest {
+    int32 partition_id = 1;
+    int64 term = 2;
+    string candidate_id = 3;
+    int32 last_log_index = 4;
+    int64 last_log_term = 5;
+}
+
+message VoteResponse {
+    int64 term = 1;
+    bool vote_granted = 2;
+}
+
+message LogEntryMessage {
+    int32 index = 1;
+    int64 term = 2;
+    string op = 3;
+    string key = 4;
+    string value = 5;
+    string request_id = 6;
+}
+
+message AppendEntriesRequest {
+    int32 partition_id = 1;
+    int64 term = 2;
+    string leader_id = 3;
+    int32 prev_log_index = 4;
+    int64 prev_log_term = 5;
+    repeated LogEntryMessage entries = 6;
+    int32 leader_commit = 7;
+}
+
+message AppendEntriesResponse {
+    int64 term = 1;
+    bool success = 2;
+    int32 last_log_index = 3;
+}
 
 message RegisterRequest {
     string ip = 1;
@@ -41,7 +143,7 @@ message RegisterRequest {
 }
 
 enum RegisterStatus {
-    Unspecified = 0;
+    Register_Status_Unspecified = 0;
     ACCEPT = 1;
     REJOIN = 2;
     REJECT = 3;
@@ -59,21 +161,14 @@ message ClusterHealthResponse {
     int32 dead = 5;
 }
 
-//message MembershipRequest {
-//    int32 version = 1;
-//}
-
 message NodeInfo {
     string ip = 1;
     int32 port = 2;
 }
 
 message MembershipResponse {
-    // int32 version = 1;
-    repeated NodeInfo nodes = 1; // key = node_id = ip:port
+    repeated NodeInfo nodes = 1;
 }
-
-// partition map (handled once)
 
 message PartitionSet {
     int32 partition = 1;
@@ -82,7 +177,5 @@ message PartitionSet {
 
 message PartitionMapResponse {
     bool ready = 1; // if true -> frozen mappings
-    int32 num_partitions = 2;
-    int32 replication_factor = 3;
     repeated PartitionSet assignments = 4;
 }
