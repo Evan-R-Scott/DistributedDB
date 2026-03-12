@@ -1,3 +1,4 @@
 .gradle/
 .vscode/
 */build/
+data-node/data/

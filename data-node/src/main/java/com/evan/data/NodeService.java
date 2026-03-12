@@ -388,7 +388,10 @@ public class NodeService extends NodeGrpc.NodeImplBase {
             return;
         }
 
+        boolean wasRejoining;
         synchronized (replica) {
+            wasRejoining = replica.isPassiveRejoin();
+
             if (request.getTerm() < replica.getCurrentTerm()) {
                 responseObserver.onNext(AppendEntriesResponse.newBuilder()
                         .setTerm(replica.getCurrentTerm())
@@ -494,5 +497,25 @@ public class NodeService extends NodeGrpc.NodeImplBase {
         }
 
         runtime.applyCommittedEntriesForPartition(replica.getPartitionId());
+
+        for (com.evan.proto.LogEntryMessage msg : request.getEntriesList()) {
+            LogEntry.OperationType op = LogEntry.OperationType.valueOf(msg.getOp());
+
+            if (NodeRuntime.TRACE_ENABLED) {
+                if (wasRejoining) {
+                    if (op == LogEntry.OperationType.PUT) {
+                        System.out.println("catching up put key: " + msg.getKey() + ", value: " + msg.getValue());
+                    } else if (op == LogEntry.OperationType.DELETE) {
+                        System.out.println("catching up delete key: " + msg.getKey());
+                    }
+                } else {
+                    if (op == LogEntry.OperationType.PUT) {
+                        System.out.println("follower put key: " + msg.getKey() + ", value: " + msg.getValue());
+                    } else if (op == LogEntry.OperationType.DELETE) {
+                        System.out.println("follower delete key: " + msg.getKey());
+                    }
+                }
+            }
+        }
     }
 }

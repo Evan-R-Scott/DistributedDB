@@ -25,6 +25,9 @@ import com.evan.proto.VoteResponse;
 
 public class NodeRuntime {
     private static final long PASSIVE_REJOIN_GRACE_MS = 2500L;
+
+    public static volatile boolean TRACE_ENABLED = true;
+
     private final ExecutorService replicationExecutor = Executors.newFixedThreadPool(32);
     private final Set<String> inFlightReplications = ConcurrentHashMap.newKeySet();
 
@@ -238,11 +241,12 @@ public class NodeRuntime {
                 replica.setElectionDeadlineMs(passiveUntil);
             }
         }
-        System.out.println("Node " + nodeId + " entered passive rejoin mode");
+
+        trace("node is rejoining");
     }
 
     public void resetElectionDeadline(PartitionReplica replica) {
-        long timeoutMs = 5000L + random.nextInt(5000); // 5000-10000 ms
+        long timeoutMs = 5000L + random.nextInt(5000);
         replica.setElectionDeadlineMs(System.currentTimeMillis() + timeoutMs);
     }
 
@@ -435,8 +439,7 @@ public class NodeRuntime {
                     }
                 }
 
-                System.out.println("Node " + nodeId + " became LEADER for partition " + partitionId
-                        + " in term " + term);
+                trace("leader elected for partition " + partitionId);
             } else {
                 replica.setRole(PartitionReplica.Role.FOLLOWER);
                 replica.setKnownLeaderId(null);
@@ -509,6 +512,12 @@ public class NodeRuntime {
             raftStore.appendLogEntry(partitionId, entry);
             replica.appendEntry(entry);
             persistMeta(replica);
+
+            if (op == LogEntry.OperationType.PUT) {
+                trace("leader put key: " + key + ", value: " + value);
+            } else if (op == LogEntry.OperationType.DELETE) {
+                trace("leader delete key: " + key);
+            }
         }
 
         List<String> activePeers = replica.getActiveReplicaSet();
@@ -589,7 +598,6 @@ public class NodeRuntime {
         long prevLogTerm;
         int leaderCommit;
         List<LogEntry> entriesToSend;
-        int previousMatch;
 
         synchronized (replica) {
             if (replica.getRole() != PartitionReplica.Role.LEADER) {
@@ -606,7 +614,6 @@ public class NodeRuntime {
             entriesToSend = replica.getEntriesFrom(nextIndex);
             term = replica.getCurrentTerm();
             leaderCommit = replica.getCommitIndex();
-            previousMatch = replica.getMatchIndex().getOrDefault(followerNodeId, 0);
         }
 
         AppendEntriesRequest.Builder builder = AppendEntriesRequest.newBuilder()
@@ -743,6 +750,13 @@ public class NodeRuntime {
         String host = parts[0];
         int port = Integer.parseInt(parts[1]);
         return channelManager.getNodeBlocking(host, port);
+    }
+
+    private void trace(String message) {
+        if (!TRACE_ENABLED) {
+            return;
+        }
+        System.out.println(message);
     }
 
     private record LeaderCatchupTarget(int partitionId, String peerNodeId) {
