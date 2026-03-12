@@ -1,5 +1,7 @@
 package com.evan.client;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.Callable;
 
@@ -10,6 +12,7 @@ class UserStats {
     long readOps;
     long writeOps;
     long deleteOps;
+    List<Long> latenciesNanos = new ArrayList<>();
 }
 
 public class WorkloadWorker implements Callable<UserStats> {
@@ -52,7 +55,10 @@ public class WorkloadWorker implements Callable<UserStats> {
             }
 
             long end = System.nanoTime();
-            stats.latencyNanos += (end - start);
+            long latency = end - start;
+
+            stats.latencyNanos += latency;
+            stats.latenciesNanos.add(latency);
 
             if (ok) {
                 stats.success++;

@@ -244,6 +244,9 @@ public class Router {
         System.out.println("Success: " + result.success);
         System.out.println("Failures: " + result.failures);
         System.out.printf("Avg latency ms: %.3f%n", result.avgLatencyMs);
+        System.out.printf("P50 latency ms: %.3f%n", result.p50LatencyMs);
+        System.out.printf("P95 latency ms: %.3f%n", result.p95LatencyMs);
+        System.out.printf("P99 latency ms: %.3f%n", result.p99LatencyMs);
         System.out.printf("Throughput ops/sec: %.3f%n", result.throughput);
         System.out.println("Reads: " + result.readOps);
         System.out.println("Writes: " + result.writeOps);

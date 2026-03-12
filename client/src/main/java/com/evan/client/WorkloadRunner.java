@@ -1,6 +1,7 @@
 package com.evan.client;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -18,7 +19,7 @@ public class WorkloadRunner {
         long totalRequestedOps = (long) users * opsPerUser;
 
         if (totalRequestedOps <= 0) {
-            return new WorkloadResult(0, 0, 0, 0.0, 0.0, 0, 0, 0);
+            return new WorkloadResult(0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0);
         }
 
         int concurrency = Math.min(
@@ -51,6 +52,7 @@ public class WorkloadRunner {
         long totalReads = 0;
         long totalWrites = 0;
         long totalDeletes = 0;
+        List<Long> allLatenciesNanos = new ArrayList<>();
 
         for (Future<UserStats> future : futures) {
             try {
@@ -61,6 +63,7 @@ public class WorkloadRunner {
                 totalReads += stats.readOps;
                 totalWrites += stats.writeOps;
                 totalDeletes += stats.deleteOps;
+                allLatenciesNanos.addAll(stats.latenciesNanos);
             } catch (Exception e) {
                 System.err.println("Worker failed: " + e.getMessage());
             }
@@ -75,14 +78,34 @@ public class WorkloadRunner {
         double elapsedSeconds = (end - start) / 1_000_000_000.0;
         double throughput = elapsedSeconds <= 0.0 ? 0.0 : totalOps / elapsedSeconds;
 
+        Collections.sort(allLatenciesNanos);
+
+        double p50LatencyMs = percentileMs(allLatenciesNanos, 0.50);
+        double p95LatencyMs = percentileMs(allLatenciesNanos, 0.95);
+        double p99LatencyMs = percentileMs(allLatenciesNanos, 0.99);
+
         return new WorkloadResult(
                 totalOps,
                 totalSuccess,
                 totalFailures,
                 avgLatencyMs,
+                p50LatencyMs,
+                p95LatencyMs,
+                p99LatencyMs,
                 throughput,
                 totalReads,
                 totalWrites,
                 totalDeletes);
+    }
+
+    private double percentileMs(List<Long> sortedLatenciesNanos, double percentile) {
+        if (sortedLatenciesNanos == null || sortedLatenciesNanos.isEmpty()) {
+            return 0.0;
+        }
+
+        int index = (int) Math.ceil(percentile * sortedLatenciesNanos.size()) - 1;
+        index = Math.max(0, Math.min(index, sortedLatenciesNanos.size() - 1));
+
+        return sortedLatenciesNanos.get(index) / 1_000_000.0;
     }
 }
