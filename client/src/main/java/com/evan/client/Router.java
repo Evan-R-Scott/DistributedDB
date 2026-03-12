@@ -543,10 +543,10 @@ public class Router {
         VersionRecord version = resp.getVersionRecord();
 
         StringBuilder sb = new StringBuilder();
-        sb.append("Key: ").append(resp.getKey())
-                .append(", Version: ").append(version.getVersion())
-                .append(", Term: ").append(version.getTerm())
-                .append(", Op: ").append(version.getOp());
+        sb.append("Key: ").append(resp.getKey());
+        // .append(", Version: ").append(version.getVersion())
+        // .append(", Term: ").append(version.getTerm())
+        // .append(", Op: ").append(version.getOp());
 
         if (version.getIsDeleted()) {
             sb.append(", Status: TOMBSTONE");
@@ -554,9 +554,9 @@ public class Router {
             sb.append(", Value: ").append(version.getValue());
         }
 
-        if (!version.getRequestId().isBlank()) {
-            sb.append(", RequestId: ").append(version.getRequestId());
-        }
+        // if (!version.getRequestId().isBlank()) {
+        // sb.append(", RequestId: ").append(version.getRequestId());
+        // }
 
         return sb.toString();
     }

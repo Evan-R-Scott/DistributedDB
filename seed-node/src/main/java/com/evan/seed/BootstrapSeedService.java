@@ -121,6 +121,7 @@ public class BootstrapSeedService extends BootstrapSeedGrpc.BootstrapSeedImplBas
 
     @Override
     public void getMembership(Empty request, StreamObserver<MembershipResponse> responseObserver) {
+        System.out.println("Received GET request for active cluster membership");
         try {
             Map<String, NodeInfo> active_nodes = cluster.snapshot();
             MembershipResponse.Builder resp_builder = MembershipResponse.newBuilder();
@@ -203,7 +204,7 @@ public class BootstrapSeedService extends BootstrapSeedGrpc.BootstrapSeedImplBas
 
     @Override
     public void getClusterHealth(Empty request, StreamObserver<ClusterHealthResponse> responseObserver) {
-
+        System.out.println("Received GET request for cluster health");
         try {
             Map<Cluster.PartitionHealth, Integer> counts = cluster.getPartitionHealthCounts();
 
