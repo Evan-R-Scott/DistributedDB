@@ -18,16 +18,11 @@ public class BootstrapSeedMain {
     }
 
     public static void main(String[] args) {
-        // if (args.length < 1) {
-        // System.err.println("Please provide a port number as an argument");
-        // return;
-        // }
         String portStr = new Config().load_parameters().getSeed().getAddress();
         String[] nodeParts = portStr.split(":");
         int port;
         try {
             port = Integer.parseInt(nodeParts[1]);
-            // port = Integer.parseInt(args[0]);
         } catch (NumberFormatException e) {
             System.err.println("Invalid port number: " + nodeParts[1]);
             return;

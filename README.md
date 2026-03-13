@@ -16,6 +16,7 @@ The data nodes and clients will sit idle until the seed node freezes the partiti
    `./gradlew :seed-node:run`
 4. Start n data nodes with unique port numbers  
    `./gradlew :data-node:run --args=<port_number>`
+   - Example - `./gradlew :data-node:run --args=5001`
 5. Start client(s)  
    `./gradlew :client:run`
 6. Execute commands, kill data nodes, etc and see outputs to test the system

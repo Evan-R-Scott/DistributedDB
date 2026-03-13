@@ -26,19 +26,12 @@ public class BootstrapSeedService extends BootstrapSeedGrpc.BootstrapSeedImplBas
     private final Cluster cluster;
     private final Config config;
 
-    // private final long stable_ms;
-    // private final int replication_factor;
-    // private final int num_partitions;
-
     private volatile PartitionMapResponse partition_map;
     private final ScheduledExecutorService ex = Executors.newSingleThreadScheduledExecutor();
 
     public BootstrapSeedService(Cluster cluster) {
         this.config = new Config().load_parameters();
         this.cluster = cluster;
-        // this.stable_ms = 10000;
-        // this.replication_factor = 3;
-        // this.num_partitions = 32;
 
         this.partition_map = PartitionMapResponse.newBuilder().setReady(false).build();
     }
@@ -138,48 +131,6 @@ public class BootstrapSeedService extends BootstrapSeedGrpc.BootstrapSeedImplBas
                     Status.INTERNAL.withDescription("getMembership failed: " + e.getMessage()).asRuntimeException());
         }
     }
-
-    // @Override
-    // public void getMembership(MembershipRequest request,
-    // StreamObserver<MembershipResponse> responseObserver) {
-    // try {
-    // int client_version = request.getVersion();
-    // int current_version = cluster.getVersion();
-    // // version number
-    // // if version number sent < current version number, send back updated nodes
-    // list
-    // // and new version number
-    // // otherwise send back nothing or maybe null since nothing has changed?
-    // if (client_version >= current_version) {
-    // MembershipResponse resp =
-    // MembershipResponse.newBuilder().setVersion(current_version).build();
-    // responseObserver.onNext(resp);
-    // responseObserver.onCompleted();
-    // return;
-    // }
-
-    // Map<String, NodeInfo> updated_nodes = cluster.snapshot();
-    // MembershipResponse.Builder respBuilder =
-    // MembershipResponse.newBuilder().setVersion(current_version);
-
-    // for (Map.Entry<String, NodeInfo> entry : updated_nodes.entrySet()) {
-    // String node_id = entry.getKey();
-    // NodeInfo node_info = entry.getValue();
-
-    // com.evan.proto.NodeInfo info =
-    // com.evan.proto.NodeInfo.newBuilder().setIp(node_info.getHost())
-    // .setPort(node_info.getPort()).setLastHeartbeat(node_info.getLastHeartbeat()).build();
-    // respBuilder.putNodes(node_id, info);
-    // }
-
-    // responseObserver.onNext(respBuilder.build());
-    // responseObserver.onCompleted();
-    // } catch (Exception e) {
-    // responseObserver.onError(
-    // Status.INTERNAL.withDescription("getMembership failed: " +
-    // e.getMessage()).asRuntimeException());
-    // }
-    // }
 
     @Override
     public void getPartitionMap(Empty request, StreamObserver<PartitionMapResponse> responseObserver) {

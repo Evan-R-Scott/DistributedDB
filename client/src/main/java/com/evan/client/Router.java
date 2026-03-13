@@ -519,7 +519,7 @@ public class Router {
         sb.append("History for key: ").append(resp.getKey()).append("\n");
 
         for (VersionRecord version : resp.getVersionsList()) {
-            sb.append("  v").append(version.getVersion())
+            sb.append("  version=").append(version.getVersion())
                     .append(" term=").append(version.getTerm())
                     .append(" op=").append(version.getOp());
 
@@ -527,10 +527,6 @@ public class Router {
                 sb.append(" [TOMBSTONE]");
             } else {
                 sb.append(" value=").append(version.getValue());
-            }
-
-            if (!version.getRequestId().isBlank()) {
-                sb.append(" requestId=").append(version.getRequestId());
             }
 
             sb.append("\n");
@@ -544,19 +540,12 @@ public class Router {
 
         StringBuilder sb = new StringBuilder();
         sb.append("Key: ").append(resp.getKey());
-        // .append(", Version: ").append(version.getVersion())
-        // .append(", Term: ").append(version.getTerm())
-        // .append(", Op: ").append(version.getOp());
 
         if (version.getIsDeleted()) {
             sb.append(", Status: TOMBSTONE");
         } else {
             sb.append(", Value: ").append(version.getValue());
         }
-
-        // if (!version.getRequestId().isBlank()) {
-        // sb.append(", RequestId: ").append(version.getRequestId());
-        // }
 
         return sb.toString();
     }

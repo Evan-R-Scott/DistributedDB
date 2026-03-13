@@ -27,14 +27,11 @@ public class PartitionReplica {
     private volatile long electionDeadlineMs = 0L;
     private volatile long lastHeartbeatMs = 0L;
 
-    // Fixed Raft membership for this partition (never shrinks after first full
-    // view).
     private volatile List<String> replicaSet = List.of();
 
-    // Current live replicas from seed active map.
     private volatile List<String> activeReplicaSet = List.of();
 
-    // Rejoin stabilization
+    // for rejoining logic
     private volatile boolean passiveRejoin = false;
     private volatile boolean heardFromLeaderSinceRejoin = false;
     private volatile long passiveRejoinUntilMs = 0L;

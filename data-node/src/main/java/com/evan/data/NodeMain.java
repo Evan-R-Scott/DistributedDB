@@ -52,7 +52,6 @@ public class NodeMain {
             System.exit(1);
         }
 
-        // Keep localhost for local testing consistency.
         this.ip = "127.0.0.1";
 
         String db_name = "node_" + this.port;

@@ -28,8 +28,6 @@ public class Cluster {
     private volatile long last_membership_change_ms;
     private final Config config;
     private volatile boolean frozen = false;
-    // private final long heartbeat_ttl_ms;
-    // node_id : NodeInfo obj to store all active nodes in the cluster
     private final ConcurrentHashMap<String, NodeInfo> active_nodes = new ConcurrentHashMap<>(); // string is node_id
                                                                                                 // which is just ip:port
 
@@ -40,17 +38,6 @@ public class Cluster {
     private final ConcurrentHashMap<Integer, List<String>> active_partition_map = new ConcurrentHashMap<>();
 
     private final ConcurrentHashMap<Integer, PartitionHealth> partition_health = new ConcurrentHashMap<>();
-
-    // track dead partitions (dont have enough replicas) and have some way to handle
-    // when a dead node rejoins and its partitions come back alive. Whenever a
-    // node rejoins, it needs to play catchup with its partitions of whatever
-    // logs/updates to the db it missed (this means we need to track like historical
-    // node list before the partition_map was frozen so we can determine if a node
-    // is rejoining or just a random node first joined that we dont care about since
-    // the partition_map is already frozen. output when a node joins, when a
-    // partition
-    // is weak (has enough replicas for a majority but not the desired amount) and
-    // when a partition is dead (not enough nodes for a majority)
 
     public Cluster() {
         // this.heartbeat_ttl_ms = 5000;
